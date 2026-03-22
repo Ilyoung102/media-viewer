@@ -388,6 +388,9 @@
             max-width: 100%;
             max-height: 100%;
         }
+        .image-container.hidden {
+            display: none !important;
+        }
 
         #mainCanvas {
             display: block;
@@ -1201,34 +1204,20 @@
         .ap-dur  { color: rgba(255,255,255,0.3); font-size:11px; flex-shrink:0; }
 
         /* ── 가사 패널 ── */
-        #audioLyricWrap {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
-            pointer-events: none;
-            z-index: 2;
-            overflow: hidden;
-        }
         #audioLyricPanel {
             position: absolute;
-            /* 앨범아트 아래 ~ 진행바 위 영역을 채움 */
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0; left: 0; right: 0; bottom: 200px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             padding: 0 24px;
-            overflow: hidden;
             pointer-events: none;
             opacity: 0;
             transition: opacity 0.3s;
+            z-index: 3;
         }
         #audioLyricPanel.visible { opacity: 1; pointer-events: auto; }
-
-        /* 가사 라인 스크롤 컨테이너 */
         #lyricScroll {
             width: 100%;
             max-width: 480px;
@@ -1258,27 +1247,18 @@
             user-select: none;
             width: 100%;
         }
-        .lyric-line.active {
-            color: #fff;
-            font-size: 17px;
-            font-weight: bold;
-        }
-        .lyric-line.near {
-            color: rgba(255,255,255,0.65);
-            font-size: 15px;
-        }
-        /* 가사 없음 / 로딩 */
+        .lyric-line.active { color: #fff; font-size: 17px; font-weight: bold; }
+        .lyric-line.near   { color: rgba(255,255,255,0.65); }
         #lyricStatus {
             font-size: 13px;
             color: rgba(255,255,255,0.35);
             text-align: center;
             padding: 12px;
+            white-space: pre-line;
         }
-        /* 가사 토글 버튼 & lrc 업로드 */
         #audioLyricBar {
             position: absolute;
-            top: 8px;
-            right: 12px;
+            top: 8px; right: 12px;
             display: flex;
             gap: 6px;
             z-index: 10;
@@ -1294,7 +1274,7 @@
             transition: background 0.15s;
             white-space: nowrap;
         }
-        .lyric-bar-btn:hover { background: rgba(255,255,255,0.22); color:#fff; }
+        .lyric-bar-btn:hover  { background: rgba(255,255,255,0.22); color:#fff; }
         .lyric-bar-btn.active { background: rgba(79,168,255,0.35); color:#4fa8ff; border-color:#4fa8ff; }
 
 
@@ -2418,15 +2398,15 @@
                 <div class="audio-bg-wave"></div>
                 <div class="audio-bg-wave"></div>
                 <div class="audio-bg-wave"></div>
-                <!-- 상단 우측: 가사 토글 버튼 -->
+                <!-- 가사 토글 버튼 (상단 우측) -->
                 <div id="audioLyricBar">
-                    <button class="lyric-bar-btn" id="lyricToggleBtn" onclick="audioToggleLyric()" title="가사 보기/숨기기">🎤 가사</button>
-                    <label class="lyric-bar-btn" title=".lrc 또는 .txt 가사 파일 업로드" style="cursor:pointer;">
+                    <button class="lyric-bar-btn" id="lyricToggleBtn" onclick="audioToggleLyric()">🎤 가사</button>
+                    <label class="lyric-bar-btn" title=".lrc / .txt 업로드" style="cursor:pointer;">
                         📂 LRC
                         <input type="file" id="lrcFileInput" accept=".lrc,.txt" style="display:none" onchange="audioLoadLrcFile(this)">
                     </label>
                 </div>
-                <!-- 가사 오버레이 (앨범아트 위 전체) -->
+                <!-- 가사 패널 -->
                 <div id="audioLyricPanel">
                     <div id="lyricStatus"></div>
                     <div id="lyricScroll" style="display:none;">
@@ -3661,7 +3641,11 @@
                     loadImage(startIdx);
                 }
                 document.getElementById('dropZone').classList.add('hidden');
-                document.querySelector('.image-container').classList.remove('hidden');
+                // 오디오 모드이면 image-container 숨김 유지
+                if (!app.audioMode) {
+                    const ic = document.querySelector('.image-container');
+                    if (ic) ic.classList.remove('hidden');
+                }
             }
         }
 
@@ -4582,6 +4566,9 @@
             if (audioWrapper2) { audioWrapper2.classList.remove('active'); }
             if (_au.el) { _au.el.pause(); }
             app.audioMode = false;
+            // 오디오 모드에서 전환 시 image-container 복원
+            const _icRestore = document.querySelector('.image-container');
+            if (_icRestore) _icRestore.classList.remove('hidden');
 
             // 이미지인 경우
             // 비디오 숨기기
@@ -7331,7 +7318,10 @@ F9 - 썸네일 패널
                                 
                                 // 드롭존 숨기기
                                 document.getElementById('dropZone').classList.add('hidden');
-                                document.querySelector('.image-container').classList.remove('hidden');
+                                if (!app.audioMode) {
+                                    const ic = document.querySelector('.image-container');
+                                    if (ic) ic.classList.remove('hidden');
+                                }
                                 
                                 // 이미지 뷰어 창으로 포커스 복귀
                                 window.focus();
@@ -7434,7 +7424,10 @@ F9 - 썸네일 패널
                                 
                                 // 드롭존 숨기기
                                 document.getElementById('dropZone').classList.add('hidden');
-                                document.querySelector('.image-container').classList.remove('hidden');
+                                if (!app.audioMode) {
+                                    const ic = document.querySelector('.image-container');
+                                    if (ic) ic.classList.remove('hidden');
+                                }
                                 
                                 // 이미지 뷰어 창으로 포커스 복귀
                                 window.focus();
@@ -9776,6 +9769,9 @@ F9 - 썸네일 패널
         _au._loading = true;
         setTimeout(() => { _au._loading = false; }, 500); // 500ms 후 해제
 
+        // audioMode 먼저 설정 (loadFiles 마지막 처리에서 image-container 숨김 유지용)
+        app.audioMode = true;
+
         showAudioToolbar();
 
         // 캔버스/비디오 숨기고 오디오 래퍼 표시
@@ -10160,276 +10156,186 @@ F9 - 썸네일 패널
     //  가사(Lyric) 엔진
     // ══════════════════════════════════════════════════════════════
     const _ly = {
-        lines:      [],      // [{time, text}]  time=-1 이면 타임코드 없음
-        curIdx:     -1,
-        visible:    false,
-        hasTime:    false,   // LRC 타임코드 여부
+        lines:   [],
+        curIdx:  -1,
+        visible: false,
+        hasTime: false,
     };
 
-    // ── 가사 보기 토글 ──────────────────────────────────────────
     function audioToggleLyric() {
         _ly.visible = !_ly.visible;
         const panel = document.getElementById('audioLyricPanel');
         const btn   = document.getElementById('lyricToggleBtn');
         if (panel) panel.classList.toggle('visible', _ly.visible);
         if (btn)   btn.classList.toggle('active', _ly.visible);
-        if (_ly.visible && _ly.lines.length === 0) {
-            _lyShowStatus('가사가 없습니다.
-같은 이름의 .lrc 파일을 업로드하거나
-MP3 ID3 태그에 가사를 포함해 주세요.');
-        }
+        if (_ly.visible && _ly.lines.length === 0)
+            _lyShowStatus('가사가 없습니다.\n같은 이름의 .lrc 파일을 업로드하거나\nMP3 ID3 태그에 가사를 포함해 주세요.');
         if (_ly.visible && _ly.lines.length > 0) _lyScroll(_ly.curIdx, false);
     }
 
-    // ── LRC 파일 업로드 ────────────────────────────────────────
     function audioLoadLrcFile(input) {
         const file = input.files && input.files[0];
         if (!file) return;
         const r = new FileReader();
         r.onload = e => {
-            _lyParseLrc(e.target.result);
+            if (file.name.toLowerCase().endsWith('.lrc') || /\[\d+:\d+/.test(e.target.result))
+                _lyParseLrc(e.target.result);
+            else
+                _lyParsePlain(e.target.result);
             showToast('🎤 가사 파일 로드됨: ' + file.name);
             if (!_ly.visible) audioToggleLyric();
         };
         r.readAsText(file, 'UTF-8');
-        input.value = ''; // 재업로드 가능하게 초기화
+        input.value = '';
     }
 
-    // ── LRC 파싱 ───────────────────────────────────────────────
-    // [mm:ss.xx] 또는 [mm:ss] 타임코드 지원
     function _lyParseLrc(text) {
         _ly.lines = [];
         _ly.hasTime = false;
-        const lines = text.split(/
-?
-/);
         const timeRe = /\[(\d{1,2}):(\d{2})(?:[.:,](\d+))?\]/g;
-
-        for (const raw of lines) {
-            const content = raw.replace(timeRe, '').trim();
-            if (!content) continue;
-
-            // 메타 태그 [ti:], [ar:] 등은 건너뜀
-            if (/^\[(ti|ar|al|by|offset|length|re|ve):/.test(raw)) continue;
-
+        for (const raw of text.split(/\r?\n/)) {
+            const txt = raw.replace(timeRe, '').trim();
+            if (!txt || /^\[(ti|ar|al|by|offset|length|re|ve):/.test(raw)) continue;
             const times = [];
             let m;
             const re2 = /\[(\d{1,2}):(\d{2})(?:[.:,](\d+))?\]/g;
             while ((m = re2.exec(raw)) !== null) {
-                const min = parseInt(m[1]);
-                const sec = parseInt(m[2]);
-                const ms  = m[3] ? parseInt(m[3].padEnd(3,'0').slice(0,3)) : 0;
-                times.push(min * 60 + sec + ms / 1000);
+                times.push(+m[1]*60 + +m[2] + (m[3] ? parseInt(m[3].padEnd(3,'0').slice(0,3))/1000 : 0));
             }
-
-            if (times.length > 0) {
+            if (times.length) {
                 _ly.hasTime = true;
-                for (const t of times) {
-                    _ly.lines.push({ time: t, text: content });
-                }
+                times.forEach(t => _ly.lines.push({ time: t, text: txt }));
             } else {
-                _ly.lines.push({ time: -1, text: content });
+                _ly.lines.push({ time: -1, text: txt });
             }
         }
-
-        // 타임코드 있으면 시간순 정렬
         if (_ly.hasTime) {
-            _ly.lines = _ly.lines.filter(l => l.time >= 0);
-            _ly.lines.sort((a, b) => a.time - b.time);
+            _ly.lines = _ly.lines.filter(l => l.time >= 0).sort((a,b) => a.time - b.time);
         }
-
         _lyRender();
     }
 
-    // ── 일반 텍스트 가사 파싱 ──────────────────────────────────
     function _lyParsePlain(text) {
-        _ly.lines = text.split(/
-?
-/)
-            .map(l => l.trim())
-            .filter(l => l.length > 0)
-            .map(t => ({ time: -1, text: t }));
+        _ly.lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(t=>({time:-1,text:t}));
         _ly.hasTime = false;
         _lyRender();
     }
 
-    // ── ID3 태그에서 가사 추출 ──────────────────────────────────
     function _lyReadID3(file) {
         if (typeof jsmediatags === 'undefined') return;
         jsmediatags.read(file, {
             onSuccess(tag) {
                 const tags = tag.tags;
-                // USLT: Unsynchronised lyrics (일반 가사)
+                // 앨범아트
+                const pic = tags.APIC || tags.picture;
+                if (pic && pic.data && pic.data.length) {
+                    try {
+                        const blob = new Blob([new Uint8Array(pic.data)], { type: pic.format || 'image/jpeg' });
+                        const fr = new FileReader();
+                        fr.onload = e2 => {
+                            const art  = document.getElementById('audioArt');
+                            const note = document.getElementById('audioArtNote');
+                            if (art)  { art.src = e2.target.result; art.style.opacity = '1'; }
+                            if (note) note.style.display = 'none';
+                        };
+                        fr.readAsDataURL(blob);
+                    } catch(e) {}
+                }
+                // USLT 가사
                 const uslt = tags.USLT || tags.uslt;
                 if (uslt) {
-                    const txt = uslt.data ? uslt.data.lyrics : (typeof uslt === 'string' ? uslt : '');
+                    const txt = (uslt.data ? uslt.data.lyrics : null) || (typeof uslt === 'string' ? uslt : '');
                     if (txt && txt.trim()) {
-                        // LRC 형식인지 먼저 시도
-                        if (/\[\d+:\d+/.test(txt)) {
-                            _lyParseLrc(txt);
-                        } else {
-                            _lyParsePlain(txt);
-                        }
-                        if (_ly.lines.length > 0) {
-                            showToast('🎤 ID3 태그 가사 로드됨');
-                            if (!_ly.visible) audioToggleLyric();
-                            return;
-                        }
+                        if (/\[\d+:\d+/.test(txt)) _lyParseLrc(txt);
+                        else _lyParsePlain(txt);
+                        if (_ly.lines.length) { showToast('🎤 ID3 가사 로드됨'); if (!_ly.visible) audioToggleLyric(); return; }
                     }
                 }
-                // SYLT: Synchronised lyrics
+                // SYLT 동기화 가사
                 const sylt = tags.SYLT || tags.sylt;
-                if (sylt && sylt.data && sylt.data.length > 0) {
-                    _ly.lines = sylt.data.map(item => ({
-                        time: item.timestamp / 1000,
-                        text: item.text
-                    })).filter(l => l.text && l.text.trim());
+                if (sylt && sylt.data && sylt.data.length) {
+                    _ly.lines = sylt.data.map(i => ({ time: i.timestamp/1000, text: i.text })).filter(l => l.text);
                     _ly.hasTime = true;
                     _ly.lines.sort((a,b) => a.time - b.time);
                     _lyRender();
                     showToast('🎤 ID3 동기화 가사 로드됨');
                     if (!_ly.visible) audioToggleLyric();
-                    return;
                 }
-                // 앨범아트 추출
-                _lyReadAlbumArt(tags);
             },
-            onError(e) {
-                console.warn('ID3 읽기 실패:', e.type, e.info);
-            }
+            onError(e) { console.warn('ID3 읽기 실패:', e.type); }
         });
     }
 
-    // ── ID3 앨범아트 추출 ───────────────────────────────────────
-    function _lyReadAlbumArt(tags) {
-        const pic = tags.APIC || tags.picture;
-        if (!pic) return;
-        const data   = pic.data;
-        const format = pic.format || 'image/jpeg';
-        if (!data || !data.length) return;
-        try {
-            const uint8 = new Uint8Array(data);
-            const blob  = new Blob([uint8], { type: format });
-            const r = new FileReader();
-            r.onload = e => {
-                const art  = document.getElementById('audioArt');
-                const note = document.getElementById('audioArtNote');
-                if (art)  { art.src = e.target.result; art.style.opacity = '1'; }
-                if (note) note.style.display = 'none';
-            };
-            r.readAsDataURL(blob);
-        } catch(e) { console.warn('앨범아트 변환 실패:', e); }
-    }
-
-    // ── 가사 DOM 렌더링 ────────────────────────────────────────
     function _lyRender() {
         const inner  = document.getElementById('lyricInner');
         const scroll = document.getElementById('lyricScroll');
         const status = document.getElementById('lyricStatus');
         if (!inner) return;
-
-        if (_ly.lines.length === 0) {
-            if (scroll) scroll.style.display = 'none';
-            _lyShowStatus('가사가 없습니다.');
-            return;
-        }
-
+        if (!_ly.lines.length) { if (scroll) scroll.style.display='none'; _lyShowStatus('가사가 없습니다.'); return; }
         if (status) status.textContent = '';
         if (scroll) scroll.style.display = 'block';
-
-        inner.innerHTML = _ly.lines.map((l, i) =>
-            `<div class="lyric-line" data-idx="${i}" onclick="_lySeek(${i})">${_lyEscape(l.text)}</div>`
+        inner.innerHTML = _ly.lines.map((l,i) =>
+            `<div class="lyric-line" data-idx="${i}" onclick="_lySeek(${i})">${l.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`
         ).join('');
-
         _ly.curIdx = -1;
     }
 
     function _lyShowStatus(msg) {
         const s = document.getElementById('lyricStatus');
         const sc = document.getElementById('lyricScroll');
-        if (s)  { s.textContent = msg; s.style.display = 'block'; }
+        if (s)  { s.textContent = msg; }
         if (sc) sc.style.display = 'none';
     }
 
-    function _lyEscape(t) {
-        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    // ── 타임코드로 시크 ────────────────────────────────────────
     function _lySeek(idx) {
-        if (!_au.el || !_ly.hasTime) return;
-        if (_ly.lines[idx] && _ly.lines[idx].time >= 0) {
-            _au.el.currentTime = _ly.lines[idx].time;
-        }
+        if (!_au.el || !_ly.hasTime || !_ly.lines[idx]) return;
+        _au.el.currentTime = _ly.lines[idx].time;
     }
 
-    // ── timeupdate 에서 현재 가사 라인 결정 ────────────────────
     function _lySync(currentTime) {
-        if (!_ly.visible || _ly.lines.length === 0) return;
-        if (!_ly.hasTime) return; // 타임코드 없으면 스크롤 안 함
-
+        if (!_ly.visible || !_ly.lines.length || !_ly.hasTime) return;
         let newIdx = -1;
-        for (let i = _ly.lines.length - 1; i >= 0; i--) {
-            if (_ly.lines[i].time <= currentTime) {
-                newIdx = i;
-                break;
-            }
+        for (let i = _ly.lines.length-1; i >= 0; i--) {
+            if (_ly.lines[i].time <= currentTime) { newIdx = i; break; }
         }
-
         if (newIdx === _ly.curIdx) return;
         _ly.curIdx = newIdx;
         _lyScroll(newIdx, true);
     }
 
-    // ── 가사 스크롤 & 하이라이트 ───────────────────────────────
     function _lyScroll(idx, animate) {
         const inner = document.getElementById('lyricInner');
         if (!inner) return;
-
-        // 모든 라인 클래스 초기화
         inner.querySelectorAll('.lyric-line').forEach((el, i) => {
-            el.classList.remove('active', 'near');
-            if (i === idx)        el.classList.add('active');
-            else if (Math.abs(i - idx) <= 2) el.classList.add('near');
+            el.classList.remove('active','near');
+            if (i === idx) el.classList.add('active');
+            else if (Math.abs(i-idx) <= 2) el.classList.add('near');
         });
-
         if (idx < 0) return;
-
-        // 현재 라인을 중앙으로 스크롤
         const activeLine = inner.querySelector('.lyric-line.active');
         if (!activeLine) return;
-        const lineH   = activeLine.offsetHeight + 6; // gap 포함
-        const offset  = idx * lineH;
-        const scrollH = document.getElementById('lyricScroll')?.offsetHeight || 220;
-        const target  = offset - scrollH / 2 + lineH / 2 - 80; // padding 보정
+        const lineH  = activeLine.offsetHeight + 6;
+        const scrollH = (document.getElementById('lyricScroll') || {}).offsetHeight || 220;
+        const target = idx * lineH - scrollH/2 + lineH/2 - 80;
         inner.style.transition = animate ? 'transform 0.4s cubic-bezier(0.4,0,0.2,1)' : 'none';
         inner.style.transform  = `translateY(${-Math.max(0, target)}px)`;
     }
 
-    // ── 곡 변경 시 가사 초기화 ─────────────────────────────────
     function _lyReset(data) {
-        _ly.lines  = [];
-        _ly.curIdx = -1;
-        _ly.hasTime = false;
-
-        // DOM 초기화
+        _ly.lines = []; _ly.curIdx = -1; _ly.hasTime = false;
         const inner  = document.getElementById('lyricInner');
         const scroll = document.getElementById('lyricScroll');
         const status = document.getElementById('lyricStatus');
         if (inner)  inner.innerHTML = '';
         if (scroll) scroll.style.display = 'none';
-        if (status) { status.textContent = ''; status.style.display = 'none'; }
-
+        if (status) status.textContent = '';
         // 앨범아트 초기화
         const art  = document.getElementById('audioArt');
         const note = document.getElementById('audioArtNote');
         if (art)  { art.src = ''; art.style.opacity = '0'; }
         if (note) note.style.display = 'block';
-
-        // ID3 태그 읽기 (jsmediatags)
-        if (data && data.file) {
-            _lyReadID3(data.file);
-        }
+        // ID3 읽기
+        if (data && data.file) _lyReadID3(data.file);
     }
 
         function vcDownload(blob, filename) {
